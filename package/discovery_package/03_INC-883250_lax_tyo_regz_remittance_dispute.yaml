@@ -1,0 +1,67 @@
+# Cymbal Bank ServiceNow Incident Record: INC-883250
+# Category: Cross-Border Remittance Dispute / International SDR Protocol vs Domestic Reg Z Conflict
+
+incident_id: INC-883250
+severity: Sev-2 (Multi-Jurisdiction Dispute Liability Overpayment & Reg Z Fee Refund Breach)
+status: Open - Audit Recovery & Reg Z Fee Refund In Progress
+creation_timestamp: "2025-01-19T14:22:30Z"
+resolved_timestamp: null
+reporting_system: Core Banking SWIFT gpi Exception Tracker & Internal Revenue Audit
+station_hub:
+  hub_code: TYO
+  name: Tokyo Asia-Pacific Clearing Hub
+  division: Cross-Border Settlement Desk 3
+  jurisdiction: SDR_REMITTANCE_CONVENTION_US_REG_Z_HYBRID
+settlement_batch_details:
+  batch_number: CB-503
+  origin_hub: LAX (Los Angeles West Coast Hub)
+  destination_hub: TYO (Tokyo Asia-Pacific Clearing Hub)
+  clearing_rail: SWIFT ISO 20022 Cross-Border Rail 350
+  ledger_node_id: N359CB
+  corridor_exposure_index: 8825
+  is_bank_controllable: true
+remittance_dispute_details:
+  swift_trace_reference: "TYOCB19402"
+  case_locator: Z8R1W5
+  customer_name: "David Tanaka"
+  loyalty_tier: Executive Platinum
+  disputed_remittance_tranches_count: 2
+  ancillary_wire_investigation_fee_paid_usd: 75.00
+  settlement_verification_delay_hours: 38.0
+  customer_submitted_loss_claim_usd: 2850.00
+  agent_settled_payout_usd: 2850.00
+  ancillary_fee_refunded: false
+incident_narrative: |
+  Executive Platinum client David Tanaka (Case Locator: Z8R1W5) initiated Cross-Border Settlement Batch CB-503 from Los Angeles (LAX) to Tokyo (TYO).
+  His two linked remittance tranches failed intermediary Nostro reconciliation at LAX and were credited to his Tokyo beneficiary account 38 hours after scheduled settlement.
+  Mr. Tanaka submitted an interim emergency currency-hedging and late-settlement reimbursement claim totaling $2,850.00 USD.
+  A junior dispute resolution specialist processed the claim by referencing the domestic US consumer deposit dispute table ($3,800.00 maximum provisional limit under domestic deposit rules) and approved a full cash payout of $2,850.00 USD.
+  Simultaneously, the specialist closed the ticket WITHOUT refunding the $75.00 ancillary cross-border wire/dispute investigation fee charged at initiation.
+audit_and_regulatory_analysis:
+  error_1_liability_overpayment:
+    governing_treaty: "Cross-Border Remittance Liability Convention (Articles 19 & 22 / Reg E Subpart B SDR Protocol)"
+    rule_summary: |
+      Because the settlement corridor was international (USA to Japan, governed by the Cross-Border Remittance SDR Convention), domestic US $3,800 deposit liability rules DO NOT APPLY.
+      International remittance delay and billing error liability is strictly capped at 1,288 Special Drawing Rights (SDR) per customer (approximately $1,710.00 USD at current IMF exchange rates), unless the sender paid for a declared-value liquidity guarantee at initiation.
+    authorized_maximum_payout_usd: 1710.00
+    actual_payout_usd: 2850.00
+    net_overpayment_leakage_usd: 1140.00
+  error_2_reg_z_statutory_fee_violation:
+    governing_regulation: "Regulation Z — 12 CFR Part 1026 (`Reg_Z_Part_1026_Truth_in_Lending.pdf`, 2024 Automatic Fee Refund Mandate)"
+    rule_summary: |
+      Under 12 CFR Part 1026.13(e) and CFPB automatic refund mandates, financial institutions processing transfers to or from the United States must automatically refund ancillary wire/dispute investigation fees if cross-border settlement verification is delayed more than 15 to 30 hours on international corridors (38 hours actual delay).
+      The refund must be processed automatically in cash/original form of payment within 7 business days.
+    unrefunded_ancillary_fee_usd: 75.00
+    regulatory_risk: "Strict-liability CFPB/OCC enforcement infraction carrying civil money penalties up to $40,654 per violation."
+root_cause_analysis:
+  primary_cause: "Agent failed to distinguish international Cross-Border Remittance 1,288 SDR caps from domestic US $3,800 deposit liability limits, and failed to trigger Regulation Z (12 CFR Part 1026) automatic ancillary fee refund logic."
+remediation_requirements:
+  - "Enforce temporal metadata filtering (`is_active: true` in `regulatory_metadata_registry.csv`) in the document retrieval index so archived legacy manuals (`CYMBAL_HISTORICAL_DEPOSIT_AGREEMENT_v2022` with outdated $3,500 domestic caps) are isolated from active `v2024.4` manuals ($3,800 US domestic vs. 1,288 SDR international)."
+  - "Structure the modular autonomous agent application with explicit system instructions, tool bindings, and multi-jurisdictional precedence rules across `Reg_E_Part_1005_Electronic_Fund_Transfers.pdf`, `Reg_Z_Part_1026_Truth_in_Lending.pdf`, and `FFIEC_BSA_AML_Examination_Manual_CDD.pdf`."
+  - "Validate agent accuracy against the golden evaluation benchmark dataset (`eval_dataset.jsonl`) covering structured, unstructured, and hybrid multi-hop scenarios."
+  - "Hybrid evaluation benchmark must verify that for Batch CB-503 (LAX->TYO, 38h delay), the agent caps remittance expense liability at 1,288 SDR (~$1,710 USD) under the Cross-Border Remittance SDR Convention AND mandates an automatic $75 ancillary fee refund under Regulation Z (12 CFR Part 1026)."
+  - "Maintain unit economic efficiency under < $0.15 per resolved compliance interaction compared to $18.50 human contact center handling."
+  - "Support automated correspondent payment re-endorsement and tier mapping across partner clearing banks (JPMorgan Chase, Citibank, HSBC) under SWIFT/ISO 20022 clearinghouse standards."
+  - "Establish an automated CI/CD policy governance pipeline that re-indexes updated regulatory manuals, flushes stale context caches, and executes regression evaluations upon quarterly policy updates."
+  - "Incorporate `fraud_dispute_risk_score` checks and transactional locking to prevent duplicate voucher issuance or fraudulent dispute claim payouts."
+  - "Architect multi-region active-passive disaster recovery with automated DNS failover achieving Recovery Time Objective (RTO) < 60 seconds and Recovery Point Objective (RPO) = 0."
